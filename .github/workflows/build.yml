@@ -14,26 +14,30 @@ jobs:
     runs-on: ubuntu-22.04  # 指定使用 Ubuntu 22.04
 
     steps:
-      # Step 1: 检出代码
-      - name: Check out the repository
+      # 步骤 1: 检出代码
+      - name: 检出代码
         uses: actions/checkout@v3
 
-      # Step 2: 使用 Docker PAT 登录 Docker Hub
-      - name: Log in to Docker Hub using PAT
+      # 步骤 2: 设置日期标签
+      - name: 设置日期标签
+        id: date_tag
+        run: echo "::set-output name=date::$(date +'%m%d-%H%M')"
+
+      # 步骤 3: 使用 Docker PAT 登录 Docker Hub
+      - name: 使用 Docker PAT 登录 Docker Hub
         run: echo "${{ secrets.DOCKER_PAT }}" | docker login -u "298977887" --password-stdin
 
-      # Step 3: 构建 Docker 镜像
-      - name: Build Docker Image
+      # 步骤 4: 构建 Docker 镜像
+      - name: 构建 Docker 镜像
         run: docker build -t "298977887/openwrt-builder:latest" .
 
-      # Step 4: 使用格式化标签（带日期和时间）
-      - name: Tag Docker Image with Version
+      # 步骤 5: 使用格式化标签（带日期和时间）
+      - name: 使用格式化标签标记镜像
         run: |
-          DATE_TAG=$(date +'%m%d-%H%M')         # 获取日期和时间（格式：1025-2310）
           docker tag "298977887/openwrt-builder:latest" "298977887/openwrt-builder:2204-${DATE_TAG}"
 
-      # Step 5: 推送镜像到 Docker Hub
-      - name: Push Docker Image to Docker Hub
+      # 步骤 6: 推送镜像到 Docker Hub
+      - name: 推送镜像到 Docker Hub
         run: |
           docker push "298977887/openwrt-builder:latest"
           docker push "298977887/openwrt-builder:2204-${DATE_TAG}"
