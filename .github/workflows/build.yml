@@ -20,8 +20,9 @@ jobs:
 
       # 步骤 2: 设置日期标签
       - name: 设置日期标签
-        id: date_tag
-        run: echo "::set-output name=date::$(date +'%m%d-%H%M')"
+        run: |
+          DATE_TAG=$(date +'%m%d-%H%M')
+          echo "DATE_TAG=${DATE_TAG}" >> $GITHUB_ENV
 
       # 步骤 3: 使用 Docker PAT 登录 Docker Hub
       - name: 使用 Docker PAT 登录 Docker Hub
