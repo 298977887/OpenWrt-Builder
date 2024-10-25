@@ -9,7 +9,9 @@ RUN apt-get update && \
     apt-get install -y sudo openssh-server && \
     mkdir /var/run/sshd && \
 	echo 'root:123456' | chpasswd && \
-	sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
+	sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config && \
+  apt-get clean && \
+  rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 #CMD ["/usr/sbin/sshd", "-D"]
 
@@ -24,11 +26,11 @@ RUN apt-get install -y curl && \
   curl -sL https://deb.nodesource.com/setup_18.x | sudo -E bash - && \
   apt-get install -y nodejs
 
-# 安装jq
-RUN apt-get install -y jq
+# 安装jq，用于解析JSON数据
+#RUN apt-get install -y jq
 
-# 安装pip3
-RUN apt-get install -y python3-pip
+# 安装pip3，用于安装Python3包
+#RUN apt-get install -y python3-pip
 
 # 预配置 tzdata 包并设置时区为中国（上海）
 RUN apt-get update -y && \
