@@ -5,11 +5,14 @@ FROM ubuntu:22.04
 ARG DEBIAN_FRONTEND=noninteractive
 
 # 更新软件包列表并安装sudo和OpenSSH服务器
+# 安装Node.js 18 为了安装指定版本的Node.js，我们会使用NodeSource的二进制分发
 RUN apt-get update && \
-    apt-get install -y sudo openssh-server && \
+    apt-get install -y sudo openssh-server curl && \
     mkdir /var/run/sshd && \
 	echo 'root:123456' | chpasswd && \
 	sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config && \
+  curl -sL https://deb.nodesource.com/setup_18.x | sudo -E bash - && \
+  apt-get install -y nodejs && \
   apt-get clean && \
   rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
@@ -22,9 +25,9 @@ RUN echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
 RUN useradd -m builder && echo "builder:builder" | chpasswd && usermod -aG sudo builder
 
 # 安装Node.js 18 为了安装指定版本的Node.js，我们会使用NodeSource的二进制分发
-RUN apt-get install -y curl && \
-  curl -sL https://deb.nodesource.com/setup_18.x | sudo -E bash - && \
-  apt-get install -y nodejs
+#RUN apt-get install -y curl && \
+#  curl -sL https://deb.nodesource.com/setup_18.x | sudo -E bash - && \
+#  apt-get install -y nodejs
 
 # 安装jq，用于解析JSON数据
 #RUN apt-get install -y jq
@@ -71,14 +74,3 @@ EXPOSE 22
 
 # 启动SSH服务
 CMD ["/usr/sbin/sshd", "-D"]
-
-# 执行命令：/usr/sbin/sshd -D
-# -D：不以守护进程方式运行
-# -e：将错误信息输出到标准错误输出
-# -f：指定配置文件
-# -h：指定主机密钥文件
-# -p：指定监听端口
-# -q：静默模式
-
-# 创建容器时自动填入执行命令
-
