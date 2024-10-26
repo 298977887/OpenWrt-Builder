@@ -27,6 +27,9 @@ RUN useradd -m builder && echo "builder:builder" | chpasswd && usermod -aG sudo 
 # 确保 builder 用户对其主目录拥有完全权限
 RUN chown -R builder:builder /home/builder
 
+# 设置 Ubuntu 风格的提示符
+RUN echo "export PS1='\\[\\e[32m\\]\\u@\\h:\\[\\e[34m\\]\\w\\[\\e[m\\]\\$ '" >> /home/builder/.bashrc
+
 # 安装jq，用于解析JSON数据
 #RUN apt-get install -y jq
 
