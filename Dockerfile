@@ -79,6 +79,8 @@ RUN cd lede && ./scripts/feeds update -a && ./scripts/feeds install -a
 
 # 拷贝 .config 配置文件
 COPY x86_64.config /home/builder/lede/.config
+# 更改 .config 文件的所有权，确保 builder 用户具有读写权限
+RUN sudo chown builder:builder /home/builder/lede/.config
 
 # 设置编译配置
 RUN cd lede && make defconfig
@@ -88,7 +90,6 @@ RUN cd lede && \
     make download -j8 && sleep 10 && \
     make download -j8
 #-----------------------
-
 
 # 验证安装
 #RUN node -v && npm -v && python2.7 -V && python3 --version
