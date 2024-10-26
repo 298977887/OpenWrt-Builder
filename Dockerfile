@@ -24,10 +24,8 @@ RUN echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
 # 创建一个名为builder的用户，并添加到sudo组
 RUN useradd -m builder && echo "builder:builder" | chpasswd && usermod -aG sudo builder
 
-# 安装Node.js 18 为了安装指定版本的Node.js，我们会使用NodeSource的二进制分发
-#RUN apt-get install -y curl && \
-#  curl -sL https://deb.nodesource.com/setup_18.x | sudo -E bash - && \
-#  apt-get install -y nodejs
+# 确保 builder 用户对其主目录拥有完全权限
+RUN chown -R builder:builder /home/builder
 
 # 安装jq，用于解析JSON数据
 #RUN apt-get install -y jq
@@ -35,7 +33,7 @@ RUN useradd -m builder && echo "builder:builder" | chpasswd && usermod -aG sudo 
 # 安装pip3，用于安装Python3包
 #RUN apt-get install -y python3-pip
 
-# 预配置 tzdata 包并设置时区为中国（上海）
+# 预配置 tzdata 包并设置时区为中国（上海），注释掉了安装python2.7的命令
 RUN apt-get update -y && \
   apt-get install -y tzdata && \
   ln -fs /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \

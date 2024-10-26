@@ -21,6 +21,8 @@ jobs:
       # 步骤 2: 设置日期标签
       - name: 设置日期标签
         run: |
+          #设置时区为上海
+          sudo ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
           DATE_TAG=$(date +'%m%d-%H%M')
           echo "DATE_TAG=${DATE_TAG}" >> $GITHUB_ENV
 
