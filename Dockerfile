@@ -60,8 +60,32 @@ USER builder
 # 设置工作目录
 WORKDIR /home/builder
 
-# 验证安装
-RUN node -v && npm -v
+#-----------------------
+# 设置动态版本号
+RUN VERSION_TAG="v$(date +'%Y%m%d-%H%M')" && echo "VERSION_TAG=${VERSION_TAG}" >> ~/.bashrc
+
+# 克隆 LEDE 源码
+RUN git clone https://github.com/coolsnowwolf/lede
+
+# 添加 LEDE 源
+RUN cd lede && \
+    echo 'src-git istore https://github.com/linkease/istore;main' >> feeds.conf.default
+
+# 更新和安装 feeds
+RUN cd lede && ./scripts/feeds update -a && ./scripts/feeds install -a
+
+# 拷贝 .config 配置文件
+COPY x86_64.config /home/builder/lede/.config
+
+# 设置编译配置
+RUN cd lede && make defconfig
+
+# 下载 dl 库
+RUN cd lede && \
+    make download -j8 && sleep 10 && \
+    make download -j8
+#-----------------------
+
 
 # 验证安装
 #RUN node -v && npm -v && python2.7 -V && python3 --version
