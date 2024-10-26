@@ -67,6 +67,9 @@ RUN VERSION_TAG="v$(date +'%Y%m%d-%H%M')" && echo "VERSION_TAG=${VERSION_TAG}" >
 # 克隆 LEDE 源码
 RUN git clone https://github.com/coolsnowwolf/lede
 
+# 更改 lede 目录的所有权，确保 builder 用户具有读写权限
+RUN sudo chown -R builder:builder /home/builder/lede
+
 # 添加 LEDE 源
 RUN cd lede && \
     echo 'src-git istore https://github.com/linkease/istore;main' >> feeds.conf.default
