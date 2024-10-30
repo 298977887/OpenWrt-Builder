@@ -85,14 +85,14 @@ RUN sudo chown builder:builder /home/builder/lede/.config
 # 设置编译配置
 RUN cd lede && make defconfig
 
-# 编译固件
-RUN cd lede && make V=0 -j$(nproc)
-
 # 下载 dl 库
 RUN cd lede && \
     make download -j8 && sleep 10 && \
     make download -j8
 #-----------------------
+
+# 编译固件
+RUN cd lede && make V=s -j1
 
 # 验证安装
 #RUN node -v && npm -v && python2.7 -V && python3 --version
