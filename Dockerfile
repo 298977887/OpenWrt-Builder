@@ -92,7 +92,7 @@ RUN cd lede && \
 #-----------------------
 
 # 编译固件
-RUN cd lede && make make V=0 -j$(nproc)
+RUN cd lede && make make V=s -j1
 #make V=0 -j$(nproc)
 #make V=s -j1 #单线程编译
 

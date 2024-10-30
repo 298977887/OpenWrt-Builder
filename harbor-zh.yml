@@ -1,0 +1,302 @@
+# Harbor的配置文件
+
+# 访问Harbor管理界面和镜像仓库服务的IP地址或主机名。
+# 不要使用localhost或127.0.0.1，因为Harbor需要被外部客户端访问。
+hostname: reg.mydomain.com
+
+# HTTP相关配置
+http:
+  # HTTP端口，默认为80。如果启用了HTTPS，此端口将重定向到HTTPS端口
+  port: 80
+
+# HTTPS相关配置
+https:
+  # Harbor的HTTPS端口，默认为443
+  port: 443
+  # Nginx的证书和密钥文件路径
+  certificate: /your/certificate/path
+  private_key: /your/private/key/path
+  # 启用强SSL加密（默认为false）
+  # strong_ssl_ciphers: false
+
+# # Harbor将默认启用IPv4。如果需要，请取消此块注释以配置IP协议栈
+# ip_family:
+#   # 如果在Docker网络中启用了IPv6，请将ipv6Enabled设置为true，目前影响Nginx相关组件
+#   ipv6:
+#     enabled: false
+#   # 默认启用IPv4，目前影响Nginx相关组件
+#   ipv4:
+#     enabled: true
+
+# # 取消注释以下内容将启用Harbor组件之间的TLS通信
+# internal_tls:
+#   # 将enabled设置为true表示启用内部TLS
+#   enabled: true
+#   # 证书和密钥文件所在的目录
+#   dir: /etc/harbor/tls/internal
+
+# 如果要启用外部代理，请取消external_url注释
+# 启用后将不再使用hostname字段
+# external_url: https://reg.mydomain.com:8433
+
+# Harbor管理员的初始密码
+# 仅在首次安装Harbor时生效
+# 启动Harbor后，请从UI界面更改管理员密码。
+harbor_admin_password: Harbor12345
+
+# Harbor数据库配置
+database:
+  # Harbor数据库用户（默认为'postgres'）的密码，在生产环境中使用前请修改
+  password: root123
+  # 空闲连接池中的最大连接数。若小于等于0，则不保留空闲连接
+  max_idle_conns: 100
+  # 数据库的最大连接数。若小于等于0，则不限制连接数。
+  # 注意：Harbor的Postgres默认连接数为1024
+  max_open_conns: 900
+  # 连接可重用的最大时间。超过此时间的连接可能在重用前被关闭。若小于等于0，则连接不会因其存活时间而关闭。
+  conn_max_lifetime: 5m
+  # 连接空闲的最长时间。超过此时间的连接可能在重用前被关闭。若小于等于0，则连接不会因空闲时间而关闭。
+  conn_max_idle_time: 0
+
+# 默认数据卷
+data_volume: /data
+
+# Harbor存储设置，默认为使用本地文件系统中的/data目录
+# 如果想使用外部存储，请取消storage_service注释
+# storage_service:
+#   # ca_bundle是自定义根CA证书的路径，注入到注册表容器的信任存储中
+#   # 当用户托管一个带有自签名证书的内部存储时，通常需要此项
+#   ca_bundle:
+
+#   # 存储后端，默认为文件系统，选项包括filesystem、azure、gcs、s3、swift和oss
+#   # 更多关于此配置的信息请参考：https://distribution.github.io/distribution/about/configuration/
+#   # 和https://distribution.github.io/distribution/storage-drivers/
+#   filesystem:
+#     maxthreads: 100
+#   # 若要禁用注册表重定向，请将disable设置为true
+#   redirect:
+#     disable: false
+
+# Trivy配置
+# 
+# Trivy数据库包含来自NVD、Red Hat和其他上游漏洞数据库的漏洞信息。
+# 它由Trivy从GitHub发布页面https://github.com/aquasecurity/trivy-db/releases下载并缓存到本地文件系统。
+# 此外，数据库包含更新的时间戳，因此Trivy可以检测是否应从互联网下载更新版本或使用缓存的版本。
+# 目前，数据库每12小时更新一次，并作为新版本发布到GitHub。
+trivy:
+  # ignoreUnfixed 标志仅显示已修复的漏洞
+  ignore_unfixed: false
+  # skipUpdate 启用或禁用从GitHub下载Trivy数据库
+  # 
+  # 您可能希望在测试或CI/CD环境中启用此标志，以避免GitHub的速率限制问题。
+  # 若启用了此标志，您必须手动下载`trivy-offline.tar.gz`归档文件，提取`trivy.db`和`metadata.json`文件
+  # 并将它们挂载到`/home/scanner/.cache/trivy/db`路径。
+  skip_update: false
+  #
+  # skipJavaDBUpdate 如果启用了此标志，您必须手动下载`trivy-java.db`文件并将其挂载到
+  # `/home/scanner/.cache/trivy/java-db/trivy-java.db`路径。
+  skip_java_db_update: false
+  #
+  # offline_scan 选项可防止Trivy发送API请求以识别依赖项。
+  # 扫描JAR文件和pom.xml可能需要互联网访问以便更好地检测，但此选项试图避免这种情况。
+  # 例如，当依赖项不在本地存储库中时，离线模式将不会尝试解析pom.xml中的传递依赖项。
+  # 它意味着检测到的漏洞数量可能会较少。
+  # 此选项不会影响数据库下载。在隔离环境中，还需要指定"skip-update"和"offline-scan"。
+  offline_scan: false
+  #
+  # security_check为要检测的安全问题的逗号分隔列表。可能的值为`vuln`、`config`和`secret`。默认为`vuln`。
+  security_check: vuln
+  #
+  # insecure 标志跳过验证注册表证书
+  insecure: false
+  #
+  # timeout 等待扫描完成的持续时间。
+  # 扫描任务有30分钟的上限。因此如果`timeout`大于30m0s，它也会在30m0s时超时。
+  timeout: 5m0s
+  #
+  # github_token 用于从GitHub下载Trivy数据库的访问令牌
+  #
+  # 从GitHub匿名下载的速率限制为每小时60次请求。通常这种速率限制足以支持生产操作。
+  # 如果由于某些原因不足以支持，则可以通过指定GitHub访问令牌将速率限制增加到每小时5000次请求。
+  # 更多关于GitHub速率限制的信息请参考：https://docs.github.com/rest/overview/resources-in-the-rest-api#rate-limiting
+  #
+  # 可以按照以下指南创建GitHub令牌
+  # https://help.github.com/en/github/authenticating-to-github/creating-a-personal-access-token-for-the-command-line
+  #
+  # github_token: xxx
+
+jobservice:
+  # 作业服务中的最大作业工作者数
+  max_job_workers: 10
+  # 作业日志记录器的后端名称，仅支持"STD_OUTPUT"、"FILE"和/或"DB"
+  job_loggers:
+    - STD_OUTPUT
+    - FILE
+    # - DB
+  # 作业日志记录器清理的持续时间（如果`jobLogger`为`stdout`则忽略）
+  logger_sweeper_duration: 1 #天
+
+notification:
+  # webhook作业的最大重试次数
+  webhook_job_max_retry: 3
+  # webhook作业的HTTP客户端超时时间
+  webhook_job_http_client_timeout: 3 #秒
+
+# 日志配置
+log:
+  # 选项为debug、info、warning、error、fatal
+  level: info
+  # 本地存储的日志配置
+  local:
+    # 日志文件在删除前会轮换log_rotate_count次。如果count为0，则旧版本会被直接删除。
+    rotate_count: 50
+    # 日志文件仅在超过log_rotate_size字节时才轮换。若size后带有k，则单位为KB。
+    # M表示MB，G表示GB。因此100、100k、100M和100G都是有效值。
+    rotate_size: 200M
+    # 日志存储的目录
+    location: /var/log/harbor
+
+  # 取消注释以下内容以启用外部syslog端点
+  # external_endpoint:
+  #   # 用于将日志传输到外部端点的协议，可选tcp或udp
+  #   protocol: tcp
+  #   # 外部端点的主机
+  #   host: localhost
+  #   # 外部端点的端口
+  #   port: 5140
+
+# 该属性用于迁移器检测.cfg文件的版本，不要修改！
+_version: 2.12.0
+
+# 使用外部数据库时取消注释external_database
+# external_database:
+#   harbor:
+#     host: harbor_db_host
+#     port: harbor_db_port
+#     db_name: harbor_db_name
+#     username: harbor_db_username
+#     password: harbor_db_password
+#     ssl_mode: disable
+#     max_idle_conns: 2
+#     max_open_conns: 0
+
+# 如果需要自定义Redis数据库，请取消redis注释
+# redis:
+#   # db_index 0用于core，不可更改
+#   # registry_db_index: 1
+#   # jobservice_db_index: 2
+#   # trivy_db_index: 5
+#   # 可选项，Harbor业务杂项的数据库，默认为0，若想更改请取消注释
+#   # harbor_db_index: 6
+#   # 可选项，Harbor缓存层的数据库，默认为0，若想更改请取消注释
+#   # cache_layer_db_index: 7
+
+# 若使用外部Redis服务器，请取消external_redis注释
+# external_redis:
+#   # 支持redis、redis+sentinel
+#   # Redis主机格式为：<host_redis>:<port_redis>
+#   # redis+sentinel主机格式为：
+#   #  <host_sentinel1>:<port_sentinel1>,<host_sentinel2>:<port_sentinel2>,<host_sentinel3>:<port_sentinel3>
+#   host: redis:6379
+#   password: 
+#   # Redis AUTH命令在Redis 6中进行了扩展，可以使用AUTH <username> <password>的双参数形式。
+#   # 使用外部redis用户名存在已知问题，请参考https://github.com/goharbor/harbor/issues/18892
+#   # 若关注镜像拉取/推送性能，请参考https://github.com/goharbor/harbor/wiki/Harbor-FAQs#external-redis-username-password-usage
+#   # username:
+#   # 若使用redis+sentinel必须设置sentinel_master_set
+#   #sentinel_master_set:
+#   # db_index 0用于core，不可更改
+#   registry_db_index: 1
+#   jobservice_db_index: 2
+#   trivy_db_index: 5
+#   idle_timeout_seconds: 30
+#   # 可选项，Harbor业务杂项的数据库，默认为0，若想更改请取消注释
+#   # harbor_db_index: 6
+#   # 可选项，Harbor缓存层的数据库，默认为0，若想更改请取消注释
+#   # cache_layer_db_index: 7
+
+# 若要信任通过自签名证书托管的uaa实例的证书，请取消uaa注释。
+# uaa:
+#   ca_file: /path/to/ca
+
+# 全局代理
+# 为组件配置HTTP代理，例如http://my.proxy.com:3128
+# 组件之间的通信不需要通过HTTP代理。
+# 若想禁用某组件的代理，请从`components`数组中删除该组件。
+# 若想为镜像复制使用代理，必须启用core和jobservice的代理，且需设置`http_proxy`和`https_proxy`。
+# 当想要禁用某些注册表的代理时，请将域名添加到`no_proxy`字段。
+proxy:
+  http_proxy:
+  https_proxy:
+  no_proxy:
+  components:
+    - core
+    - jobservice
+    - trivy
+
+# metric:
+#   enabled: false
+#   port: 9090
+#   path: /metrics
+
+# 跟踪相关配置
+# 仅能同时启用一个跟踪提供程序（jaeger或otel）
+# 使用jaeger作为提供程序时，可以仅启用agent模式或collector模式
+# 使用jaeger collector模式时，请取消endpoint注释，若需要请取消username和password注释
+# 使用jaeger agent模式时请取消agent_host和agent_port注释
+# trace:
+#   enabled: true
+#   # 若要采样100%的跟踪数据，将sample_rate设置为1；若要采样50%的跟踪数据，则设置为0.5，依此类推
+#   sample_rate: 1
+#   # # 区分不同Harbor服务的命名空间
+#   # namespace:
+#   # # attributes为用户定义的用于初始化跟踪提供程序的属性的键值对字典
+#   # attributes:
+#   #   application: harbor
+#   # # jaeger版本应为1.26或更高版本
+#   # jaeger:
+#   #   endpoint: http://hostname:14268/api/traces
+#   #   username:
+#   #   password:
+#   #   agent_host: hostname
+#   #   # 以紧凑模式通过jaeger.thrift导出跟踪数据
+#   #   agent_port: 6831
+#   # otel:
+#   #   endpoint: hostname:4318
+#   #   url_path: /v1/traces
+#   #   compression: false
+#   #   insecure: true
+#   #   # 超时时间（秒）
+#   #   timeout: 10
+
+# 启用清理_upload目录
+upload_purging:
+  enabled: true
+  # 删除存在一段时间的_upload目录中的文件，默认一周
+  age: 168h
+  # 清理操作的时间间隔
+  interval: 24h
+  dryrun: false
+
+# 缓存层配置
+# 启用该功能后，Harbor将缓存资源
+# `project/project_metadata/repository/artifact/manifest`在redis中，
+# 这将有助于提高高并发镜像拉取的性能。
+# 注意：
+# 若在HA模式下部署Harbor，请确保所有Harbor实例的缓存行为一致，
+# 即均启用或均禁用缓存，否则可能导致数据不一致。
+cache:
+  # 默认未启用
+  enabled: false
+  # 默认缓存保留一天
+  expire_hours: 24
+
+# Harbor核心配置
+# 取消注释以启用以下Harbor核心相关配置项。
+# core:
+#   # 更新项目配额（使用情况）的提供程序，有两种选择：redis或db，
+#   # 默认为db实现，但可以切换到redis以提高高并发推送至同一项目的性能，
+#   # 并减少数据库连接激增。
+#   # 使用redis会带来配额使用更新的显示延迟，
+#   # 因此仅在高并发推送至同一项目时建议切换到redis提供商。
+#   quota_update_provider: redis # 或db
