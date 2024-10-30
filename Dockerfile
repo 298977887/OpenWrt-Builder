@@ -85,6 +85,9 @@ RUN sudo chown builder:builder /home/builder/lede/.config
 # 设置编译配置
 RUN cd lede && make defconfig
 
+# 编译固件
+RUN cd lede && make V=0 -j$(nproc)
+
 # 下载 dl 库
 RUN cd lede && \
     make download -j8 && sleep 10 && \
